@@ -5,7 +5,7 @@ Tested with python3 on windows and Linux
 # Required
 opencv python module
 ```
-pip install opencv-python
+$ pip install opencv-python
 ```
 # How to use
 Run command like:
