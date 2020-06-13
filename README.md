@@ -1,6 +1,6 @@
 # slide-extractor-from-video
 This simple python script will extract your video presentation (from url or local filename) into splitted images.
-Tested with python3 on windows and Linux
+Tested with python3 on windows.
 
 # Required
 opencv python module
