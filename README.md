@@ -4,6 +4,10 @@ This simple python script will extract your video presentation into splitted ima
 # How to use
 
 Run command like:
-  $ export-slide.py <url>
+```
+$ export-slide.py <url>
+  ```
 OR
-  $ export-slide.py <filename>
+```
+$ export-slide.py <filename>
+  ```
