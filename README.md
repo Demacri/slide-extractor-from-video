@@ -3,7 +3,8 @@ This simple python script will extract your video presentation (from url or loca
 Tested with python3 on windows.
 
 # Required
-opencv python module
+1) ffmpeg
+2) opencv python module
 ```
 $ pip install opencv-python
 ```
