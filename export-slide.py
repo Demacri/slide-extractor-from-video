@@ -15,11 +15,52 @@
 '''
 import os
 import sys
-import hashlib
 import cv2
-import numpy as np
 import re
 from skimage.metrics import structural_similarity as ssim
+from PIL import Image, ImageChops
+
+def removePointer(images):
+    if len(images) <= 1:
+        return None
+    if(len(images) == 2):
+        os.remove(images[1])
+        return None
+    fn1 = images.pop(0)
+    img1 = Image.open(fn1)
+    pixR = img1.load()
+    fn2 = images.pop(0)
+    img2 = Image.open(fn2)
+    pix2 = img2.load()
+    diff = ImageChops.difference(img1,img2)
+    pixdiff = diff.load()
+    diffPixelsList = []
+    for col in range(0,img1.size[0]):
+        for row in range(0,img1.size[1]):
+            if pixdiff[col,row] != (0,0,0):
+                diffPixelsList.append([col,row])
+
+    while(len(images) > 0):
+        fn3 = images.pop(0)
+        img3 = Image.open(fn3)
+        pix3 = img3.load()
+        diff = ImageChops.difference(img1,img3)
+        pixdiff = diff.load()
+        newDiffPixelsList = []
+        for p in diffPixelsList:
+            # if(pixR[p[0],p[1]] == pix3[p[0],p[1]]): #pixel X,Y at img 1 is equal to pixel X2,Y2 at img 3, so in the img 2 there's a pointer
+                #it's already ok
+            if pix2[p[0],p[1]] == pix3[p[0],p[1]]:
+                pixR[p[0],p[1]] = pix2[p[0],p[1]]
+                continue
+            newDiffPixelsList.append(p)
+        diffPixelsList = newDiffPixelsList
+        img3.close()
+        os.remove(fn3)
+    img2.close()
+    os.remove(fn2)
+    img1.save(fn1)
+
 
 step = 10 #time interval to extract frame from video. piu' alto e' il valore e piu' veloce sara' l'estrazione ma meno precisa(potrebbero perdersi delle slide). piu' basso e' il valore e piu' precisa sara' l'estrazione, ci vuole piu' tempo
 loglevel = 'panic' #otherwise: warning -- loglevel ffmpeg
@@ -34,7 +75,7 @@ regex = re.compile(
         r'(?:/?|[/?]\S+)$', re.IGNORECASE)
 
 if(re.match(regex, sys.argv[1]) is not None):
-	os.system('wget ' + sys.argv[1])
+	os.system('wget ' + sys.argv[1]+'')
 
 dir_name = sys.argv[1].split("/")[-1].split(".")[0]
 
@@ -46,7 +87,7 @@ os.system('ffmpeg -loglevel '+loglevel+' -i ' + sys.argv[1] + ' -vf fps=1/4 -q:v
 
 found_and_removed = 0
 last_frame_read = None
-
+slide_group_images = []
 for filename in os.listdir(output_dir):
     filename = output_dir+"/" + filename
     current_frame = cv2.imread(filename)
@@ -54,9 +95,18 @@ for filename in os.listdir(output_dir):
     if(last_frame_read is not None):
         similarity = ssim(current_frame, last_frame_read)
         if(similarity > 0.90):
-            found_and_removed += 1
-            os.remove(filename)
+            print(filename," is similar to previous")
+            slide_group_images.append(filename)
+        else:
+            removePointer(slide_group_images)
+            slide_group_images = [filename]
     
     last_frame_read = current_frame
 
+
+
 print("duplicate found and removed: " + str(found_and_removed))
+
+#idea: check if similarity with previous is > 90 and similarity with previous previous > 90 -> interpolation
+
+
