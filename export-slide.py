@@ -20,7 +20,7 @@ import cv2
 import numpy as np
 import re
 from skimage.metrics import structural_similarity as ssim
-from PIL import Image
+from PIL import Image, ImageChops
 import imagehash
 
 found_and_removed = 0
